@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { trackTrace, trackException } from './appInsights';
 
 export default function OrderForm({ onOrderSent }) {
   const [order, setOrder] = useState({
@@ -18,10 +19,51 @@ export default function OrderForm({ onOrderSent }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const startTime = Date.now();
+    
     try {
-      await axios.post(`${baseUrl}/orders`, order);
+      // Chiamata API
+      const response = await axios.post(`${baseUrl}/orders`, order);
+      const duration = Date.now() - startTime;
+      
+      // ✅ LOG DI SUCCESSO -> TRACES
+      trackTrace(`Ordine inviato con successo: ${order.orderId}`, {
+        orderId: order.orderId,
+        destination: order.destination,
+        itemType: order.itemType,
+        weightKg: order.weightKg,
+        priority: order.priority,
+        responseStatus: response.status,
+        duration: duration,
+        timestamp: new Date().toISOString(),
+        operation: 'order_submission_success'
+      });
+      
       onOrderSent(order);
+      alert('Ordine inviato con successo!');
+      
     } catch (error) {
+      const duration = Date.now() - startTime;
+      
+      // ❌ LOG DI ERRORE -> EXCEPTIONS
+      trackException(error, {
+        orderId: order.orderId,
+        destination: order.destination,
+        itemType: order.itemType,
+        weightKg: order.weightKg,
+        priority: order.priority,
+        url: `${baseUrl}/orders`,
+        duration: duration,
+        timestamp: new Date().toISOString(),
+        operation: 'order_submission_error',
+        errorDetails: {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText
+        }
+      });
+      
       console.error('Errore nell\'invio dell\'ordine:', error);
       alert('Errore nell\'invio dell\'ordine. Riprova.');
     }
