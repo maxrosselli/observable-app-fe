@@ -2,7 +2,11 @@ import { ApplicationInsights } from '@microsoft/applicationinsights-web';
 import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
 
 // Sostituisci questa stringa con la tua Instrumentation Key di Application Insights
-const instrumentationKey = process.env.REACT_APP_APPINSIGHTS_INSTRUMENTATION_KEY || 'YOUR_INSTRUMENTATION_KEY_HERE';
+const instrumentationKey = process.env.REACT_APP_APPINSIGHTS_INSTRUMENTATION_KEY || 'ba975d6e-b688-4d59-954c-8e74a80eb458';
+
+// Debug: mostra la chiave utilizzata
+console.log('Application Insights Key:', instrumentationKey);
+console.log('Environment variable:', process.env.REACT_APP_APPINSIGHTS_INSTRUMENTATION_KEY);
 
 const reactPlugin = new ReactPlugin();
 

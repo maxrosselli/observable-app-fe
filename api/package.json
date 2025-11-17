@@ -1,0 +1,9 @@
+{
+  "name": "azure-functions-api",
+  "version": "1.0.0",
+  "description": "Azure Functions for Static Web App",
+  "main": "ping.js",
+  "dependencies": {
+    "@azure/functions": "^4.0.0"
+  }
+}
