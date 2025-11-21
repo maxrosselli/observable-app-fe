@@ -31,6 +31,16 @@ const appInsights = new ApplicationInsights({
 
 appInsights.loadAppInsights();
 
+// Attendiamo che Application Insights sia completamente inizializzato
+setTimeout(() => {
+  if (!appInsights.context?.operation) {
+    console.warn('Inizializzazione manuale del context di Application Insights');
+    if (appInsights.context) {
+      appInsights.context.operation = { id: generateGuid(), name: 'page-load' };
+    }
+  }
+}, 100);
+
 // Funzioni helper per il logging con operationId
 export const trackEvent = (name, properties = {}, measurements = {}) => {
   const context = appInsights.context;
@@ -38,10 +48,10 @@ export const trackEvent = (name, properties = {}, measurements = {}) => {
     name,
     properties: {
       ...properties,
-      operationId: context.operation.id,
-      operationName: context.operation.name,
-      sessionId: context.session.id,
-      userId: context.user.id
+      operationId: context?.operation?.id || generateGuid(),
+      operationName: context?.operation?.name || 'unknown',
+      sessionId: context?.session?.id || 'unknown',
+      userId: context?.user?.id || 'anonymous'
     },
     measurements
   });
@@ -53,10 +63,10 @@ export const trackException = (error, properties = {}) => {
     exception: error,
     properties: {
       ...properties,
-      operationId: context.operation.id,
-      operationName: context.operation.name,
-      sessionId: context.session.id,
-      userId: context.user.id
+      operationId: context?.operation?.id || generateGuid(),
+      operationName: context?.operation?.name || 'unknown',
+      sessionId: context?.session?.id || 'unknown',
+      userId: context?.user?.id || 'anonymous'
     }
   });
 };
@@ -67,21 +77,32 @@ export const trackTrace = (message, properties = {}) => {
     message,
     properties: {
       ...properties,
-      operationId: context.operation.id,
-      operationName: context.operation.name,
-      sessionId: context.session.id,
-      userId: context.user.id
+      operationId: context?.operation?.id || generateGuid(),
+      operationName: context?.operation?.name || 'unknown',
+      sessionId: context?.session?.id || 'unknown',
+      userId: context?.user?.id || 'anonymous'
     }
   });
 };
 
 // Funzione per ottenere l'operationId corrente
 export const getCurrentOperationId = () => {
-  return appInsights.context.operation.id;
+  return appInsights.context?.operation?.id || generateGuid();
 };
 
 // Funzione per creare un nuovo operationId per una specifica operazione
 export const startNewOperation = (operationName) => {
+  // Inizializza il context se non esiste
+  if (!appInsights.context) {
+    console.warn('Application Insights context non inizializzato');
+    return generateGuid();
+  }
+  
+  // Inizializza operation se non esiste
+  if (!appInsights.context.operation) {
+    appInsights.context.operation = {};
+  }
+  
   const operationId = appInsights.context.operation.id || generateGuid();
   appInsights.context.operation.id = operationId;
   appInsights.context.operation.name = operationName;
